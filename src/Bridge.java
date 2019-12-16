@@ -24,11 +24,11 @@ public class Bridge {
 	
 	private ArrayList<Bus> allBuses = new ArrayList<Bus>();
 	
-	public void addBus(Bus bus) {
+	public synchronized void addBus(Bus bus) {
 		allBuses.add(bus);
 	}
 	
-	public void removeBus(Bus bus) {
+	public synchronized void removeBus(Bus bus) {
 		allBuses.remove(bus);
 	}
 

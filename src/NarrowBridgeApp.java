@@ -23,6 +23,8 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class NarrowBridgeApp extends JFrame implements ActionListener{
 
@@ -90,6 +92,12 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		authorInfoMenuItem.addActionListener(this);
 		appInfoMenuItem.addActionListener(this);
 
+		trafficIntensitySlider.addChangeListener( new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				setSimulationTrafficFactor();
+			}
+		});
 	}
 	
 	private void setInitialControlsProporties() {
@@ -111,7 +119,7 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		
 		logScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		EmptyBorder border = (EmptyBorder) BorderFactory.createEmptyBorder(BORDER_THICKNESS, BORDER_THICKNESS ,BORDER_THICKNESS ,BORDER_THICKNESS);
-		//LineBorder border = (LineBorder) BorderFactory.createLineBorder(Color.DARK_GRAY, BORDER_THICKNESS);
+	
 		
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(BORDER_THICKNESS, BORDER_THICKNESS));
@@ -162,7 +170,7 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 	}
 
 	private void startSimulation() {
-		simulationManager = new SimulationManager(logTextArea, drawPanel);
+		simulationManager = new SimulationManager(logTextArea, drawPanel, trafficIntensitySlider.getValue());
 		new Thread(simulationManager, "SIMULATION MANAGER").start();
 	}
 	
@@ -189,6 +197,10 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		JOptionPane.showMessageDialog(this, APP_INFO, "Informacje o programie", JOptionPane.INFORMATION_MESSAGE);
 	}
 
+	private void setSimulationTrafficFactor(){
+		int trafficDelayPercent = trafficIntensitySlider.getValue();
+		simulationManager.setSpawnDelayFactor(trafficDelayPercent);
+	}
 
 
 }

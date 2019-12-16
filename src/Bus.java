@@ -13,7 +13,7 @@ public class Bus implements Runnable{
 	private int width;
 	private int height;
 	
-	private int speed = 3;
+	private int speed = 10;
 	
 	private Bridge bridge;
 	private Dimension panelSize;
