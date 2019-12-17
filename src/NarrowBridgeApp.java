@@ -3,6 +3,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -13,12 +14,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -47,15 +45,13 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 	
 	private JMenu helpMenu = new JMenu("Pomoc");
 	private JMenuItem authorInfoMenuItem = new JMenuItem("O autorze");
-	private JMenuItem appInfoMenuItem = new JMenuItem("O programie");
-	
+	private JMenuItem appInfoMenuItem = new JMenuItem("O programie");	
 	
 	private JLabel busesInQueueLabel = new JLabel("Busy oczekuj¹ce przed mostem:", JLabel.LEFT);
 	private JLabel busesOnBridgeLabel = new JLabel("Busy na moœcie:", JLabel.LEFT);
 	private JLabel trafficIntensityLabel = new JLabel("Wspó³czynnik natê¿enia ruchu:", JLabel.RIGHT);
 	private JLabel bridgeThroughputLabel = new JLabel("Tryb pracy mostu:", JLabel.RIGHT);
-	private JLabel maxBusesOnBridgeLabel = new JLabel("Liczba busów do przepuszczenia:", JLabel.RIGHT);
-	
+	private JLabel maxBusesOnBridgeLabel = new JLabel("Liczba busów do przepuszczenia:", JLabel.RIGHT);	
 	
 	private JTextField busesInQueueTextField = new JTextField("Kolejka jest pusta");
 	private JTextField busesOnBridgeTextField = new JTextField("Most jest pusty");
@@ -63,23 +59,23 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 	private JComboBox<BridgeThroughput> bridgeThroughputComboBox = new JComboBox<>(BridgeThroughput.values());
 	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(2, 2, 10, 1));
 	
-	
-	private JTextArea logTextArea = new JTextArea();
-	private JScrollPane logScrollPane = new JScrollPane(logTextArea);
+	private LogPanel logPanel = new LogPanel();
 	private DrawPanel drawPanel = new DrawPanel();
+	private SimulationManager simulationManager = new SimulationManager(logPanel, drawPanel, trafficIntensitySlider.getValue());
 	
-	private SimulationManager simulationManager;
 	
+
 	public NarrowBridgeApp() {
 		super(APP_TITLE);
 		setSize(1280, 720);
-		setResizable(true);
+		setResizable(false);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		UIManager.put("OptionPane.messageFont", new Font("Monospaced", Font.BOLD, FONT_SIZE));
 		
 		addActionListeners();
 		setInitialControlsProporties();
+		initializeSimulation();
 		createWindowLayout();
 		createMenuBar();
 		
@@ -92,7 +88,7 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		authorInfoMenuItem.addActionListener(this);
 		appInfoMenuItem.addActionListener(this);
 
-		trafficIntensitySlider.addChangeListener( new ChangeListener() {
+		trafficIntensitySlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				setSimulationTrafficFactor();
@@ -106,6 +102,11 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		busesOnBridgeTextField.setEditable(false);
 		
 		trafficIntensitySlider.setPaintLabels(true);
+		Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+		labelTable.put(new Integer(0), new JLabel("MIN"));
+		labelTable.put(new Integer(50), new JLabel("MID"));
+		labelTable.put(new Integer(100), new JLabel("MAX"));
+		trafficIntensitySlider.setLabelTable(labelTable);
 		trafficIntensitySlider.setPaintTicks(true);
 		trafficIntensitySlider.setPaintTrack(true);
 		trafficIntensitySlider.setMajorTickSpacing(25);
@@ -117,9 +118,8 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 
 	private void createWindowLayout() {
 		
-		logScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		EmptyBorder border = (EmptyBorder) BorderFactory.createEmptyBorder(BORDER_THICKNESS, BORDER_THICKNESS ,BORDER_THICKNESS ,BORDER_THICKNESS);
-	
+
 		
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(BORDER_THICKNESS, BORDER_THICKNESS));
@@ -151,7 +151,7 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		
 		JPanel centerPanel = new JPanel(new GridLayout(1, 2, BORDER_THICKNESS, BORDER_THICKNESS));
 		centerPanel.setBorder(border);
-		centerPanel.add(logScrollPane);
+		centerPanel.add(logPanel);
 		centerPanel.add(drawPanel);	
 		
 		
@@ -168,10 +168,15 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		menuBar.add(helpMenu);
 		setJMenuBar(menuBar);
 	}
+	
+	private void initializeSimulation() {
+		
+	}
 
 	private void startSimulation() {
-		simulationManager = new SimulationManager(logTextArea, drawPanel, trafficIntensitySlider.getValue());
 		new Thread(simulationManager, "SIMULATION MANAGER").start();
+		new Thread(drawPanel, "DRAW PANEL").start();
+		//new Thread(logPanel, "LOG PANEL").start();
 	}
 	
 	@Override

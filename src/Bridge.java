@@ -22,27 +22,35 @@ enum BridgeThroughput {
 
 public class Bridge {
 	
-	private ArrayList<Bus> allBuses = new ArrayList<Bus>();
-	
-	public synchronized void addBus(Bus bus) {
-		allBuses.add(bus);
-	}
-	
-	public synchronized void removeBus(Bus bus) {
-		allBuses.remove(bus);
+	ArrayList<Bus> busesWaiting;
+	ArrayList<Bus> busesCrossing;
+
+	public Bridge() {
+		busesWaiting = new ArrayList<Bus>();
+		busesCrossing = new ArrayList<Bus>();
 	}
 
-	public ArrayList<Bus> getAllBuses() {
-		return allBuses;
-	}
-
-	public void draw(Graphics g) {
-		// parking, droga, kolejka, most
-		synchronized (allBuses) {
-			for(Bus bus : allBuses) {
-				bus.draw(g);
+	public synchronized void getOnTheBridge(Bus bus) {
+		while(!busesCrossing.isEmpty()) {
+			busesWaiting.add(bus);
+			bus.sendLog("Czeka przed mostem");
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				System.err.println("Sleep error");
 			}
-		}	
+			
+			busesWaiting.remove(bus);
+		}
+		
+		bus.sendLog("Jedzie przez most");
+		busesCrossing.add(bus);
+	}
+	
+	public synchronized void getOffTheBridge(Bus bus) {
+		busesCrossing.remove(bus);
+		bus.sendLog("Zje¿dza z mostu");
+		notify();
 	}
 	
 }

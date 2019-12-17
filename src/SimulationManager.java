@@ -1,27 +1,41 @@
 
-import javax.swing.JTextArea;
+import java.awt.Graphics;
+import java.util.ArrayList;
+
 
 public class SimulationManager implements Runnable {
+	
+	private static int BUS_ID = 1;
 
-	private static final int BUS_SPAWN_TIME = 500; //0.5 sec
-	private static final int BUS_SPAWN_MAX_DELAY = 4500; //4.5 sec
+	private static final int BUS_SPAWN_TIME = 1000; //0.5 sec
+	private static final int BUS_SPAWN_MAX_DELAY = 4000; //4.5 sec
 	
-	
-	private JTextArea logTextArea;
+	private LogPanel logPanel;
 	private DrawPanel drawPanel;
 	
+	private ArrayList<Bus> buses;
 	private Bridge bridge;
+	private WorldMap worldMap;
 	
 	private float spawnDelayFactor;
 	
 	
-	public SimulationManager(JTextArea logTextArea, DrawPanel drawPanel, int spawnDelayFactor) {
-		this.logTextArea = logTextArea;
+	public SimulationManager(LogPanel logPanel, DrawPanel drawPanel, int spawnDelayFactor) {
+		this.logPanel = logPanel;
 		this.drawPanel = drawPanel;
 		setSpawnDelayFactor(spawnDelayFactor);
-		this.bridge = new Bridge();
-		this.drawPanel.setBridge(this.bridge);
+		bridge = new Bridge();
+		buses = new ArrayList<Bus>();
 	}
+	
+	public Bridge getBridge() {
+		return bridge;
+	}
+
+	public void setBridge(Bridge bridge) {
+		this.bridge = bridge;
+	}
+
 
 	public synchronized float getSpawnDelayFactor() {
 		return spawnDelayFactor;
@@ -37,21 +51,17 @@ public class SimulationManager implements Runnable {
 
 	@Override
 	public void run() {
-	
-		new Thread(drawPanel, "DRAW PANEL").start();
+		worldMap = new WorldMap(drawPanel.getSize());
+		drawPanel.setSimulationManager(this);
 		
-		int busID = 1;
+		//for(int i= 0; i<10; i++) {
 		while(true) {
-			if(busID % 25 == 0) {
-				logTextArea.setText(logTextArea.getText() + busID + "\n");
-			}else {
-				logTextArea.setText(logTextArea.getText() + " " + busID + ", ");
-			}
-			busID++;
+			Bus bus = new Bus(bridge, logPanel, worldMap);
+			buses.add(bus);
+			new Thread(bus, "BUS" + BUS_ID++).start();
 			
-			Bus bus = new Bus(bridge, drawPanel.getSize());
-			new Thread(bus, "BUS" + busID).start();
-			
+			buses.removeIf((x) -> !x.isRunThread());
+			System.out.println(buses.size());
 			try {
 				Thread.sleep((int) (BUS_SPAWN_TIME + BUS_SPAWN_MAX_DELAY * spawnDelayFactor));
 			} catch (InterruptedException e) {
@@ -60,5 +70,19 @@ public class SimulationManager implements Runnable {
 		}
 		
 	}
+	
+	public void draw(Graphics g) {
+		
+		if(worldMap != null) {
+			worldMap.draw(g);
+		}
+		
+		synchronized (buses) {
+			for(Bus bus : buses) {
+				bus.draw(g);
+			}
+		}
+	}
+
 
 }

@@ -7,30 +7,28 @@ public class DrawPanel extends JPanel implements Runnable{
 	
 	private static final long serialVersionUID = 6748004371807231054L;
 	
-	private Bridge bridge;
-	
+	private SimulationManager simulationManager;
 	
 	public DrawPanel() {
-		setBackground(Color.LIGHT_GRAY);
+		setBackground(Color.DARK_GRAY);
 	}
 	
-	public void setBridge(Bridge bridge) {
-		this.bridge = bridge;
+	public SimulationManager getSimulationManager() {
+		return simulationManager;
+	}
 
+	public void setSimulationManager(SimulationManager simulationManager) {
+		this.simulationManager = simulationManager;
 	}
-	
-	public Bridge getBridge() {
-		return bridge;
-		
-	}
-	
+
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
-		if(bridge != null) {
-			bridge.draw(g);
+		if(simulationManager != null) {
+			simulationManager.draw(g);
 		}
+		
 	}
 
 	@Override
