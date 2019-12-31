@@ -1,14 +1,16 @@
 
 import java.awt.Graphics;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+
+import javax.swing.JTextField;
 
 
 public class SimulationManager implements Runnable {
 	
 	private static int BUS_ID = 1;
 
-	private static final int BUS_SPAWN_TIME = 1000; //0.5 sec
-	private static final int BUS_SPAWN_MAX_DELAY = 4000; //4.5 sec
+	//private static final int BUS_SPAWN_TIME = 500;
 	
 	private LogPanel logPanel;
 	private DrawPanel drawPanel;
@@ -17,36 +19,31 @@ public class SimulationManager implements Runnable {
 	private Bridge bridge;
 	private WorldMap worldMap;
 	
-	private float spawnDelayFactor;
+	private JTextField busesWaitingTextField;
+	private JTextField busesCrossingTextField;
 	
+	private int busSpawnMaxDelay;
 	
-	public SimulationManager(LogPanel logPanel, DrawPanel drawPanel, int spawnDelayFactor) {
+	public SimulationManager(LogPanel logPanel, DrawPanel drawPanel, int busSpawnMaxDelay, JTextField busesInQueueTextField, JTextField busesOnBridgeTextField) {
 		this.logPanel = logPanel;
 		this.drawPanel = drawPanel;
-		setSpawnDelayFactor(spawnDelayFactor);
-		bridge = new Bridge();
+		this.busSpawnMaxDelay = busSpawnMaxDelay;
+		busesWaitingTextField = busesInQueueTextField;
+		busesCrossingTextField = busesOnBridgeTextField;
+		bridge = new Bridge(BridgeThroughput.ONE_BUS_ONE_WAY);
 		buses = new ArrayList<Bus>();
 	}
+
+	public float getBusSpawnMaxDelay (){
+		return busSpawnMaxDelay;
+	}
+
+	public void setBusSpawnMaxDelay(int busSpawnMaxDelay) {
+		this.busSpawnMaxDelay = busSpawnMaxDelay;
+	}
 	
-	public Bridge getBridge() {
-		return bridge;
-	}
-
-	public void setBridge(Bridge bridge) {
-		this.bridge = bridge;
-	}
-
-
-	public synchronized float getSpawnDelayFactor() {
-		return spawnDelayFactor;
-	}
-
-	public synchronized void setSpawnDelayFactor(int spawnDelayFactor) {
-		if(spawnDelayFactor == 0) {
-			this.spawnDelayFactor = 1;
-		}else {
-			this.spawnDelayFactor = (float) 1/spawnDelayFactor;
-		}
+	public void setBridgeThroughput(BridgeThroughput bridgeThroughput) {
+		bridge.setBridgeThroughput(bridgeThroughput);
 	}
 
 	@Override
@@ -54,21 +51,41 @@ public class SimulationManager implements Runnable {
 		worldMap = new WorldMap(drawPanel.getSize());
 		drawPanel.setSimulationManager(this);
 		
-		//for(int i= 0; i<10; i++) {
-		while(true) {
-			Bus bus = new Bus(bridge, logPanel, worldMap);
-			buses.add(bus);
-			new Thread(bus, "BUS" + BUS_ID++).start();
+		new Thread(new Runnable() {
 			
-			buses.removeIf((x) -> !x.isRunThread());
-			System.out.println(buses.size());
+			@Override
+			public void run() {
+				while(true) {
+					Bus bus = new Bus(bridge, logPanel, worldMap);
+					synchronized (buses) {
+						buses.add(bus);
+					}
+					new Thread(bus, "BUS" + BUS_ID++).start();
+					
+					try {
+						int timeToNextSpawn = ThreadLocalRandom.current().nextInt((int)busSpawnMaxDelay/2, busSpawnMaxDelay);
+						Thread.sleep(timeToNextSpawn);
+					} catch (InterruptedException e) {
+						System.err.println("Sleep error");
+					}
+				}				
+			}
+		}, "BUS SPAWNER").start();
+		
+		while(true) {
+			synchronized (buses) {
+				buses.removeIf((x) -> x.isToRemove());
+			}
+			
+			busesWaitingTextField.setText(bridge.getWaitngBusesList());
+			busesCrossingTextField.setText(bridge.getCrossingBusesList());
+			
 			try {
-				Thread.sleep((int) (BUS_SPAWN_TIME + BUS_SPAWN_MAX_DELAY * spawnDelayFactor));
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				System.err.println("Sleep error");
 			}
 		}
-		
 	}
 	
 	public void draw(Graphics g) {
@@ -83,6 +100,4 @@ public class SimulationManager implements Runnable {
 			}
 		}
 	}
-
-
 }

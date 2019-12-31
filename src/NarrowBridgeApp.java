@@ -24,13 +24,14 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class NarrowBridgeApp extends JFrame implements ActionListener{
+public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeListener{
 
 	private static final long serialVersionUID = 773440677198457816L;
 	
 	private static final String APP_TITLE = "Narrow Bridge Simulation";
-	private static final String AUTHOR_INFO = "Autor: Ja";
-	private static final String APP_INFO = "Symulacja";
+	private static final String AUTHOR_INFO = "Autor: Micha³ Tkacz 248869\n"
+											+ "Pi¹tek TN 11:15";
+	private static final String APP_INFO = "...";
 
 	private static final int BORDER_THICKNESS = 4;
 	private static final int FONT_SIZE = 12;
@@ -49,20 +50,19 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 	
 	private JLabel busesInQueueLabel = new JLabel("Busy oczekuj¹ce przed mostem:", JLabel.LEFT);
 	private JLabel busesOnBridgeLabel = new JLabel("Busy na moœcie:", JLabel.LEFT);
-	private JLabel trafficIntensityLabel = new JLabel("Wspó³czynnik natê¿enia ruchu:", JLabel.RIGHT);
+	private JLabel trafficIntensityLabel = new JLabel("Natê¿enie ruchu:", JLabel.RIGHT);
 	private JLabel bridgeThroughputLabel = new JLabel("Tryb pracy mostu:", JLabel.RIGHT);
-	private JLabel maxBusesOnBridgeLabel = new JLabel("Liczba busów do przepuszczenia:", JLabel.RIGHT);	
+	private JLabel maxBusesOnBridgeLabel = new JLabel("Ograniczenie liczby busów na moœcie:", JLabel.RIGHT);	
 	
 	private JTextField busesInQueueTextField = new JTextField("Kolejka jest pusta");
 	private JTextField busesOnBridgeTextField = new JTextField("Most jest pusty");
-	private JSlider trafficIntensitySlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 10);
+	private JSlider trafficIntensitySlider = new JSlider(JSlider.HORIZONTAL, 500, 6000, 4000);
 	private JComboBox<BridgeThroughput> bridgeThroughputComboBox = new JComboBox<>(BridgeThroughput.values());
-	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(2, 2, 10, 1));
+	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(((BridgeThroughput)bridgeThroughputComboBox.getSelectedItem()).getBusLimit(), 1, 20, 1));
 	
 	private LogPanel logPanel = new LogPanel();
 	private DrawPanel drawPanel = new DrawPanel();
-	private SimulationManager simulationManager = new SimulationManager(logPanel, drawPanel, trafficIntensitySlider.getValue());
-	
+	private SimulationManager simulationManager = new SimulationManager(logPanel, drawPanel, trafficIntensitySlider.getValue(), busesInQueueTextField, busesOnBridgeTextField);
 	
 
 	public NarrowBridgeApp() {
@@ -73,9 +73,8 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		UIManager.put("OptionPane.messageFont", new Font("Monospaced", Font.BOLD, FONT_SIZE));
 		
-		addActionListeners();
+		addListeners();
 		setInitialControlsProporties();
-		initializeSimulation();
 		createWindowLayout();
 		createMenuBar();
 		
@@ -84,43 +83,39 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		startSimulation();
 	}
 
-	private void addActionListeners() {
+	private void addListeners() {
 		authorInfoMenuItem.addActionListener(this);
 		appInfoMenuItem.addActionListener(this);
-
-		trafficIntensitySlider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				setSimulationTrafficFactor();
-			}
-		});
+		bridgeThroughputComboBox.addActionListener(this);
+		
+		trafficIntensitySlider.addChangeListener(this);
+		maxBusesOnBridgeSpinner.addChangeListener(this);
 	}
 	
 	private void setInitialControlsProporties() {
 		busesInQueueTextField.setEditable(false);
-	
 		busesOnBridgeTextField.setEditable(false);
 		
 		trafficIntensitySlider.setPaintLabels(true);
 		Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-		labelTable.put(new Integer(0), new JLabel("MIN"));
-		labelTable.put(new Integer(50), new JLabel("MID"));
-		labelTable.put(new Integer(100), new JLabel("MAX"));
+		int minValue = trafficIntensitySlider.getMinimum();
+		int maxValue = trafficIntensitySlider.getMaximum();
+		int midValue = (int) (maxValue + minValue)/2;
+		labelTable.put(new Integer(minValue), new JLabel("MAX"));
+		labelTable.put(new Integer(midValue), new JLabel("MID"));
+		labelTable.put(new Integer(maxValue), new JLabel("MIN"));
 		trafficIntensitySlider.setLabelTable(labelTable);
 		trafficIntensitySlider.setPaintTicks(true);
 		trafficIntensitySlider.setPaintTrack(true);
-		trafficIntensitySlider.setMajorTickSpacing(25);
-		trafficIntensitySlider.setMinorTickSpacing(5);
+		trafficIntensitySlider.setMajorTickSpacing(500);
+		trafficIntensitySlider.setMinorTickSpacing(100);
 		
-		maxBusesOnBridgeLabel.setEnabled(false);
-		maxBusesOnBridgeSpinner.setEnabled(false);
+		updateMaxBusesOnBridgeSpinner();
 	}
 
-	private void createWindowLayout() {
-		
+	private void createWindowLayout() {		
 		EmptyBorder border = (EmptyBorder) BorderFactory.createEmptyBorder(BORDER_THICKNESS, BORDER_THICKNESS ,BORDER_THICKNESS ,BORDER_THICKNESS);
 
-		
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(BORDER_THICKNESS, BORDER_THICKNESS));
 		mainPanel.setBorder(border);
@@ -158,7 +153,6 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 		mainPanel.add(centerPanel, BorderLayout.CENTER);
 		setContentPane(mainPanel);
-
 	}
 
 	private void createMenuBar() {
@@ -168,15 +162,10 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		menuBar.add(helpMenu);
 		setJMenuBar(menuBar);
 	}
-	
-	private void initializeSimulation() {
-		
-	}
 
 	private void startSimulation() {
 		new Thread(simulationManager, "SIMULATION MANAGER").start();
 		new Thread(drawPanel, "DRAW PANEL").start();
-		//new Thread(logPanel, "LOG PANEL").start();
 	}
 	
 	@Override
@@ -191,6 +180,25 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 			showAppInfo();
 		}
 		
+		if(eSource == bridgeThroughputComboBox) {
+			updateMaxBusesOnBridgeSpinner();
+			updateSimulationSettings();
+		}
+		
+	}
+	
+	@Override
+	public void stateChanged(ChangeEvent event) {
+		Object eSource = event.getSource();
+		
+		if(eSource == trafficIntensitySlider) {
+			setSimulationTrafficFactor();
+		}
+		
+		if(eSource == maxBusesOnBridgeSpinner) {
+			updateBridgeThroughput();
+			updateSimulationSettings();
+		}
 		
 	}
 	
@@ -202,10 +210,27 @@ public class NarrowBridgeApp extends JFrame implements ActionListener{
 		JOptionPane.showMessageDialog(this, APP_INFO, "Informacje o programie", JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	private void setSimulationTrafficFactor(){
-		int trafficDelayPercent = trafficIntensitySlider.getValue();
-		simulationManager.setSpawnDelayFactor(trafficDelayPercent);
+	private void updateSimulationSettings() {
+		BridgeThroughput bridgeThroughput = (BridgeThroughput) bridgeThroughputComboBox.getSelectedItem(); 
+		simulationManager.setBridgeThroughput(bridgeThroughput);
 	}
 
+	private void updateBridgeThroughput() {
+		int busLimit = (int) maxBusesOnBridgeSpinner.getValue();
+		((BridgeThroughput) bridgeThroughputComboBox.getSelectedItem()).setbusLimit(busLimit);		
+	}
 
+	private void setSimulationTrafficFactor(){
+		int trafficIntensity = trafficIntensitySlider.getValue();
+		simulationManager.setBusSpawnMaxDelay(trafficIntensity);
+	}
+
+	private void updateMaxBusesOnBridgeSpinner() {
+		BridgeThroughput bt = (BridgeThroughput) bridgeThroughputComboBox.getSelectedItem(); 
+		boolean enabled = (bt == BridgeThroughput.MANY_BUSES_BOTH_WAYS || bt == BridgeThroughput.MANY_BUSES_ONE_WAY);
+		maxBusesOnBridgeSpinner.setEnabled(enabled);
+		maxBusesOnBridgeLabel.setEnabled(enabled);
+		
+		maxBusesOnBridgeSpinner.setValue(bt.getBusLimit());
+	}
 }

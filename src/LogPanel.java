@@ -10,6 +10,7 @@ public class LogPanel extends JScrollPane{
 	public LogPanel() {
 		super(logTextArea);
 		setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		setEnabled(false);
 		setAutoscrolls(true);
 	}
 	

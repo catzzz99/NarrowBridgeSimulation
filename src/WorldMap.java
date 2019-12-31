@@ -39,6 +39,7 @@ enum WorldZoneType{
 		return widthRatio;
 	}
 
+	@Override
 	public String toString() {
 		return name;
 	}
@@ -65,12 +66,6 @@ public class WorldMap {
 		public void draw(Graphics g) {
 			g.setColor(worldZoneType.getColor());
 			g.fillRect(x, y, width, height);
-			
-//			g.setColor(Color.BLACK);
-//			FontMetrics fm = g.getFontMetrics();
-//			int tx = x + (width - fm.stringWidth(worldZoneType.getName()))/2;
-//			int ty = y + (height - fm.getHeight())/2 + fm.getAscent();
-//			g.drawString(worldZoneType.getName(), tx, ty);
 					  
 			AffineTransform affineTransform = new AffineTransform();
 			affineTransform.rotate(-Math.PI/2);
@@ -88,7 +83,6 @@ public class WorldMap {
 
 			g2.drawString(worldZoneType.getName(), tx, ty);
 		}
-		
 	}
 	
 	private ArrayList<WorldZone> worldZones;
@@ -100,12 +94,12 @@ public class WorldMap {
 	
 	public WorldMap(Dimension worldSize) {
 		this.worldSize = worldSize;
-		calculateMapTileSize();
+		calculateMapZoneSize();
 		createWorldMap();
 	}
 	
 	
-	private void calculateMapTileSize() {
+	private void calculateMapZoneSize() {
 		int numberOfTiles = 0;
 		for(WorldZoneType type : WorldZoneType.values()) {
 			numberOfTiles += type.getWidthRatio();
@@ -127,8 +121,7 @@ public class WorldMap {
 			x += width;
 		    width = (int) mapZoneWidth * type.getWidthRatio() ;
 		    worldZones.add(new WorldZone(x, y, width, height, type));
-		}
-		
+		}	
 	}
 	
 	public WorldZone getWorldZone(WorldZoneType type) {
@@ -196,8 +189,6 @@ public class WorldMap {
 		for(WorldZone worldZone : worldZones) {
 			worldZone.draw(g);
 		}
-
 	}
 	
-
 }

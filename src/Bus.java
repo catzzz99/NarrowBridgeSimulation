@@ -5,8 +5,8 @@ import java.awt.Graphics;
 import java.util.concurrent.ThreadLocalRandom;
 
 enum BusDirection {
-	EAST("East", 1),
-	WEST("West", -1);
+	EAST("(EAST)", 1),
+	WEST("(WEST)", -1);
 	
 	private String name;
 	private int direction;
@@ -15,50 +15,56 @@ enum BusDirection {
 		this.name = name;
 		this.direction = direction;
 	}
-
-	public int getDirection() {
-		return direction;
-	}
 	
 	@Override
 	public String toString(){
 		return name;
 	}
 
+	public int getDirection() {
+		return direction;
+	}
 }
 
 enum BusState {
-	BOARDING("³aduje pasa¿erów"),
-	ON_ROAD_TO_BRIDGE("Jedzie do mostu"),
-	//GET_ON_BRIDGE("Czeka na wjazd na most"),
-	ON_BRIDGE("Jedzie przez most"),
-	ON_ROAD_TO_PARKING("Jedzie na parking"),
-	UNBOARDING("Wy³adowuje pasa¿erów");
+	INITIALIZATION("[Bus pojawi³ siê na parkingu pocz¹tkowym] "),
+	EMBARKATION("Wpuszcza pasa¿erów na pok³ad na parkingu pocz¹tkowym "),
+	ON_ROAD_TO_BRIDGE("Jedzie w kierunku mostu "),
+	GET_ON_BRIDGE("Czeka w kolejce do wjazdu na most "),
+	CROSS_THE_BRIDGE("Przeje¿d¿a przez most "),
+	GET_OFF_BRIDGE("Opuszcza most "),
+	ON_ROAD_TO_PARKING("Jedzie w kierunku parkingu koñcowego "),
+	DISEMBARKATION("Wypuszcza pasa¿erów na parkingu koñcowym "),
+	TO_REMOVE("[Bus opuœci³ parking koñcowy] ");
 	
-	private String state;
+	private String stateMessage;
 	
-	BusState(String state){
-		this.state = state;
+	BusState(String stateMessage){
+		this.stateMessage = stateMessage;
 	}
 	
 	@Override
 	public String toString() {
-		return state;
+		return stateMessage;
 	}
 	
 }
 
-public class Bus implements Runnable{
+public class Bus implements Runnable {
 	
 	private static int BUS_NUMBER = 1;
 	
-	private static int MIN_BOARDING_TIME = 500;
-	private static int MAX_BOARDING_TIME = 5000;
-	private static int ON_ROAD_TO_BRIDGE_TIME = 500;
+	private static int MIN_EMBARKATION_TIME = 500;
+	private static int MAX_EMBARKATION_TIME = 5000;
+	
+	private static int ON_ROAD_TO_BRIDGE_TIME = 2000;
+	
 	private static int ON_BRIDGE_TIME = 3000;
-	private static int ON_ROAD_TO_PARKING_TIME = 500;
-	private static int MIN_UNBOARDING_TIME = 500;
-	private static int MAX_UNBOARDING_TIME = 2000;
+	
+	private static int ON_ROAD_TO_PARKING_TIME = 2000;
+	
+	private static int MIN_DISEMBARKATION_TIME = 500;
+	private static int MAX_DISEMBARKATION_TIME = 1500;
 
 	private int x;
 	private int y;
@@ -66,7 +72,6 @@ public class Bus implements Runnable{
 	private int height;
 
 	private int speed;
-	private BusState busState;
 	private BusDirection busDirection;
 	private Color color;
 	
@@ -76,90 +81,85 @@ public class Bus implements Runnable{
 	
 	private int busID;
 	
-	private boolean runThread;
+	private BusState currentState;
+	private BusState nextState;
+	
 	
 	public Bus(Bridge bridge, LogPanel logPanel, WorldMap worldMap) {
 		this.bridge = bridge;
 		this.logPanel = logPanel;
 		this.worldMap = worldMap;
 		this.busID = BUS_NUMBER++;
-		runThread = true;
-		
+
 		width = 40;
 		height = 20;
 		speed = 0;
 		
-		busState = BusState.BOARDING;
+		currentState = BusState.INITIALIZATION;
+		nextState = BusState.EMBARKATION;
 		
-		int rnd = ThreadLocalRandom.current().nextInt(2);
-		if(rnd == 0) {
+		if(ThreadLocalRandom.current().nextBoolean()) {
 			busDirection = BusDirection.EAST;
 			x = 4;
 			color = Color.GREEN;
 		}else {
 			busDirection = BusDirection.WEST;
 			x = worldMap.getWidth() - width - 4;
-			color = Color.PINK;
+			color = Color.ORANGE;
 		}
 		
 		y = height * (ThreadLocalRandom.current().nextInt(4, this.worldMap.getHeight() - height - 4) % height);
 	}
-
-	public Bridge getBridge() {
-		return bridge;
-	}
-
-	public void setBridge(Bridge bridge) {
-		this.bridge = bridge;
+	
+	@Override
+	public String toString() {
+		return "BUS" + Integer.toString(busID);
 	}
 
 	public int getBusID() {
 		return busID;
 	}
 
-	public void setBusID(int busID) {
-		this.busID = busID;
+	public BusDirection getBusDirection() {
+		return busDirection;
 	}
-
-	public boolean isRunThread() {
-		return runThread;
-	}
-
-	public void setRunThread(boolean runThread) {
-		this.runThread = runThread;
-	}
-
-	boolean isOnBridge = false;
 	
 	@Override
 	public void run() {
-		while(runThread) {
-			switch (busState) {
-			case BOARDING:
-				boarding();
+		while(currentState != BusState.TO_REMOVE) {
+			switch (currentState) {
+			case INITIALIZATION:
+				initialization();
+				break;
+			case EMBARKATION:
+				embarkation();
 				break;
 			case ON_ROAD_TO_BRIDGE:
 				onRoadToBridge();
 				break;
-			case ON_BRIDGE:
+			case GET_ON_BRIDGE:
+				getOnBridge();
+				break;
+			case CROSS_THE_BRIDGE:
 				crossTheBridge();
+				break;
+			case GET_OFF_BRIDGE:
+				getOffBridge();
 				break;
 			case ON_ROAD_TO_PARKING:
 				onRoadToParking();
 				break;
-			case UNBOARDING:
+			case DISEMBARKATION:
+				disembarkation();
+				break;
+			case TO_REMOVE:
+				toRemove();
 				break;
 			default:
 				break;
 			}
-
 		
-			x += speed;
-			//System.out.println(x);
-			
-			if( x+width < 0 || x > worldMap.getWidth()) {
-				runThread = false;
-			}
+			updatePostition();
 			
 			try {
 				Thread.sleep(16);
@@ -170,9 +170,13 @@ public class Bus implements Runnable{
 		
 	}
 	
+	private void updatePostition() {
+		x += speed;
+	}
+
 	public void sendLog(String message) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("[ID" + busID + "] ");
+		sb.append("<< [BUS" + busID + "] ");
 		sb.append(message);
 		logPanel.addLog(sb.toString());
 	}
@@ -190,12 +194,12 @@ public class Bus implements Runnable{
 		takeNap(napTime);
 	}
 	
-	private void setNextState(BusState nextState, int time){
-		busState = nextState;
-		calculateSpeed(time);
-	}
-	
 	private void calculateSpeed(int time) {
+		if(time == 0) {
+			speed = 0;
+			return;
+		}
+		
 		int distance = 0;
 		if(busDirection == BusDirection.WEST) {
 			distance = worldMap.getWorldZoneHeight(WorldZoneType.EAST_ROAD);
@@ -205,59 +209,89 @@ public class Bus implements Runnable{
 		speed = 10 * busDirection.getDirection() * distance/time;
 	}
 	
-	private void boarding() {
-		sendLog("Stoi na parkingu");
-		takeNap(MIN_BOARDING_TIME, MAX_BOARDING_TIME);
-		setNextState(BusState.ON_ROAD_TO_BRIDGE, ON_ROAD_TO_BRIDGE_TIME);
+	private void initialization() {
+		nextState = BusState.EMBARKATION;	
+		currentState = nextState;
+	}
+
+	private void embarkation() {
+		if(nextState == BusState.EMBARKATION) {
+			sendLog(currentState.toString());
+			takeNap(MIN_EMBARKATION_TIME, MAX_EMBARKATION_TIME);
+			
+			nextState = BusState.ON_ROAD_TO_BRIDGE;
+			currentState = nextState;
+		}
 	}
 
 	private void onRoadToBridge() {
-		sendLog("Jedzie do mostu w kierunku " + busDirection.toString());
-		setNextState(BusState.ON_BRIDGE, ON_BRIDGE_TIME);
+		if(nextState == BusState.ON_ROAD_TO_BRIDGE) {
+			sendLog(currentState.toString() + busDirection.toString());
+			calculateSpeed(ON_ROAD_TO_BRIDGE_TIME);
+			nextState = BusState.GET_ON_BRIDGE;
+		}else {
+			if(busDirection == BusDirection.EAST) {
+				if(x > worldMap.getWorldZoneX(WorldZoneType.WEST_GATE))
+					currentState = nextState;
+			}else if(busDirection == BusDirection.WEST) {
+				if(x + width < worldMap.getWorldZoneX(WorldZoneType.EAST_ROAD))
+					currentState = nextState;
+			}
+		}
+	}
+	
+	private void getOnBridge() {
+		bridge.getOnTheBridge(this);
+		nextState = BusState.CROSS_THE_BRIDGE;
+		currentState = nextState;
 	}
 	
 	private void crossTheBridge() {
-		//TODO divide into two separate methods
-		if(busDirection == BusDirection.EAST) {
-			if (x > worldMap.getWorldZoneX(WorldZoneType.EAST_GATE)){
-				bridge.getOffTheBridge(this);
-				setNextState(BusState.ON_ROAD_TO_PARKING, ON_ROAD_TO_PARKING_TIME);
-			}else if(x > worldMap.getWorldZoneX(WorldZoneType.WEST_GATE)) {
-				if(isOnBridge) return;
-				isOnBridge = true;
-				bridge.getOnTheBridge(this);
-			} 
-		}else if(busDirection == BusDirection.WEST) {
-			if (x + width < worldMap.getWorldZoneX(WorldZoneType.BRIDGE)) {
-				bridge.getOffTheBridge(this);
-				setNextState(BusState.ON_ROAD_TO_PARKING, ON_ROAD_TO_PARKING_TIME);
-			} else if(x + width < worldMap.getWorldZoneX(WorldZoneType.EAST_ROAD)) {
-				if(isOnBridge) return;
-				isOnBridge = true;
-				bridge.getOnTheBridge(this);
+		if(nextState == BusState.CROSS_THE_BRIDGE) {
+			sendLog(currentState.toString());
+			calculateSpeed(ON_BRIDGE_TIME);
+			nextState = BusState.GET_OFF_BRIDGE;
+		}else {
+			if(busDirection == BusDirection.EAST) {
+				if (x > worldMap.getWorldZoneX(WorldZoneType.EAST_GATE))
+					currentState = nextState;	
+			}else if(busDirection == BusDirection.WEST) {
+				if (x + width < worldMap.getWorldZoneX(WorldZoneType.BRIDGE)) 
+					currentState = nextState;
 			}
 		}
-		
+	}
+	
+	private void getOffBridge() {
+		bridge.getOffTheBridge(this);
+		nextState = BusState.ON_ROAD_TO_PARKING;
+		currentState = nextState;
 	}
 	
 	private void onRoadToParking() {
-		sendLog("Jedzie do mostu w kierunku " + busDirection.toString());
-		if(busDirection == BusDirection.EAST) {
-			if (x > worldMap.getWorldZoneX(WorldZoneType.EAST_GATE)){
-				bridge.getOffTheBridge(this);
-				setNextState(BusState.ON_ROAD_TO_PARKING, ON_ROAD_TO_PARKING_TIME);
+		if(nextState == BusState.ON_ROAD_TO_PARKING) {
+			sendLog(currentState.toString() + busDirection.toString());
+			calculateSpeed(ON_ROAD_TO_PARKING_TIME);
+			nextState = BusState.DISEMBARKATION;
+		}else {
+			if(busDirection == BusDirection.EAST) {
+				if (x > worldMap.getWorldZoneX(WorldZoneType.EAST_PARKING))
+					currentState = nextState;
+			}else if(busDirection == BusDirection.WEST) {
+				if (x + width < worldMap.getWorldZoneX(WorldZoneType.WEST_ROAD))
+					currentState = nextState;
 			}
-		}else if(busDirection == BusDirection.WEST) {
-			if (x + width < worldMap.getWorldZoneX(WorldZoneType.BRIDGE)) {
-				bridge.getOffTheBridge(this);
-				setNextState(BusState.ON_ROAD_TO_PARKING, ON_ROAD_TO_PARKING_TIME);
-			} else if(x + width < worldMap.getWorldZoneX(WorldZoneType.EAST_ROAD)) {
-				if(isOnBridge) return;
-				isOnBridge = true;
-				bridge.getOnTheBridge(this);
-			}
+		}	
+	}
+	
+	private void disembarkation() {
+		if(nextState == BusState.DISEMBARKATION) {
+			sendLog(currentState.toString());
+			calculateSpeed(0);
+			takeNap(MIN_DISEMBARKATION_TIME, MAX_DISEMBARKATION_TIME);
+			nextState = BusState.TO_REMOVE;
+			currentState = nextState;
 		}
-		setNextState(BusState.ON_ROAD_TO_PARKING, ON_ROAD_TO_PARKING_TIME);
 	}
 
 	public void draw(Graphics g) {	
@@ -272,6 +306,15 @@ public class Bus implements Runnable{
 		int tx = x + (width - fm.stringWidth(Integer.toString(busID)))/2;
 		int ty = y + (height - fm.getHeight())/2 + fm.getAscent();
 		g.drawString(Integer.toString(busID), tx, ty);
-
 	}
+
+	private void toRemove() {
+		nextState = BusState.TO_REMOVE;
+		currentState = nextState;
+	}
+	
+	public boolean isToRemove() {
+		return currentState == BusState.TO_REMOVE;
+	}
+	
 }

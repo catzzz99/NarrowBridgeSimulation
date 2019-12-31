@@ -28,7 +28,6 @@ public class DrawPanel extends JPanel implements Runnable{
 		if(simulationManager != null) {
 			simulationManager.draw(g);
 		}
-		
 	}
 
 	@Override
@@ -42,6 +41,4 @@ public class DrawPanel extends JPanel implements Runnable{
 			}
 		}
 	}
-
-
 }
