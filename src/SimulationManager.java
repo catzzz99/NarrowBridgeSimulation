@@ -9,8 +9,6 @@ import javax.swing.JTextField;
 public class SimulationManager implements Runnable {
 	
 	private static int BUS_ID = 1;
-
-	//private static final int BUS_SPAWN_TIME = 500;
 	
 	private LogPanel logPanel;
 	private DrawPanel drawPanel;

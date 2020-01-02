@@ -108,7 +108,10 @@ public class Bus implements Runnable {
 			color = Color.ORANGE;
 		}
 		
-		y = height * (ThreadLocalRandom.current().nextInt(4, this.worldMap.getHeight() - height - 4) % height);
+		int worldHeight = worldMap.getHeight(); 
+		int randomPixel  = ThreadLocalRandom.current().nextInt(0, worldHeight + 1);
+		int spawnLineY =  randomPixel % ((int) worldHeight/height);
+		y = height * spawnLineY;
 	}
 	
 	@Override

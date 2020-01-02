@@ -32,7 +32,6 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	private static final String AUTHOR_INFO = "Autor: Micha³ Tkacz 248869\n"
 											+ "Pi¹tek TN 11:15";
 	private static final String APP_INFO = "...";
-
 	private static final int BORDER_THICKNESS = 4;
 	private static final int FONT_SIZE = 12;
 	
@@ -56,9 +55,9 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	
 	private JTextField busesInQueueTextField = new JTextField("Kolejka jest pusta");
 	private JTextField busesOnBridgeTextField = new JTextField("Most jest pusty");
-	private JSlider trafficIntensitySlider = new JSlider(JSlider.HORIZONTAL, 500, 6000, 4000);
+	private JSlider trafficIntensitySlider = new JSlider(JSlider.HORIZONTAL, 1000, 6000, 4000);
 	private JComboBox<BridgeThroughput> bridgeThroughputComboBox = new JComboBox<>(BridgeThroughput.values());
-	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(((BridgeThroughput)bridgeThroughputComboBox.getSelectedItem()).getBusLimit(), 1, 20, 1));
+	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(((BridgeThroughput)bridgeThroughputComboBox.getSelectedItem()).getBusLimit(), 1, 10, 1));
 	
 	private LogPanel logPanel = new LogPanel();
 	private DrawPanel drawPanel = new DrawPanel();
