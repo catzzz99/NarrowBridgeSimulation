@@ -2,11 +2,29 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 
+/*
+ * PROGRAM: "Narrow Bridge Simulation"
+ *
+ * PLIKI: 	NarrowBridgeApp.java
+ * 			Bridge.java
+ * 			Bus.java
+ * 			DrawPanel.java
+ * 			LogPanel.java
+ * 			SimulationManager.java
+ * 			WorldMap.java			
+ * 
+ * AUTOR: 	Micha³ Tkacz 248869
+ * 		 	Pi¹tek TN 11:15
+ * 
+ * DATA:    6 stycznia 2020r
+ * 
+ */
+
 enum BridgeThroughput {
-	ONE_BUS_ONE_WAY("Tylko jeden bus na moœcie", 1),
-	MANY_BUSES_ONE_WAY("Ograniczony przejazd tylko w jedn¹ stronê", 3),
-	MANY_BUSES_BOTH_WAYS("Ograniczony przejazd w obie strony", 3),
-	UNLIMITED("Nieograniczony przejazd w obie strony", Integer.MAX_VALUE);
+	ONE_BUS_ONE_WAY("Przejazd pojedyñczo", 1),
+	MANY_BUSES_ONE_WAY("Przejazd ograniczony, jednokierunkowy", 3),
+	MANY_BUSES_BOTH_WAYS("Przejazd ograniczony, dwukierunkowy", 3),
+	UNLIMITED("Przejazd nieograniczony", Integer.MAX_VALUE);
 	
 	
 	private String text;
@@ -114,6 +132,7 @@ public class Bridge {
 				!allowedDirections.contains(bus.getBusDirection())) {
 			
 			busesWaiting.add(bus);
+			bus.setInactiveColor();
 			bus.sendLog(BusState.GET_ON_BRIDGE.toString());
 			
 			try {
@@ -125,6 +144,7 @@ public class Bridge {
 			busesWaiting.remove(bus);
 		}
 		
+		bus.setActiveColor();
 		busesCrossing.add(bus);
 	}
 	

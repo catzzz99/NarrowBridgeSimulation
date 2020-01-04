@@ -4,9 +4,27 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.util.concurrent.ThreadLocalRandom;
 
+/*
+ * PROGRAM: "Narrow Bridge Simulation"
+ *
+ * PLIKI: 	NarrowBridgeApp.java
+ * 			Bridge.java
+ * 			Bus.java
+ * 			DrawPanel.java
+ * 			LogPanel.java
+ * 			SimulationManager.java
+ * 			WorldMap.java			
+ * 
+ * AUTOR: 	Micha³ Tkacz 248869
+ * 		 	Pi¹tek TN 11:15
+ * 
+ * DATA:    6 stycznia 2020r
+ * 
+ */
+
 enum BusDirection {
-	EAST("(EAST)", 1),
-	WEST("(WEST)", -1);
+	EAST("E", 1),
+	WEST("W", -1);
 	
 	private String name;
 	private int direction;
@@ -73,7 +91,9 @@ public class Bus implements Runnable {
 
 	private int speed;
 	private BusDirection busDirection;
-	private Color color;
+	private Color activeColor;
+	private Color inactiveColor;
+	private Color currentColor;
 	
 	private Bridge bridge;
 	private LogPanel logPanel;
@@ -101,12 +121,16 @@ public class Bus implements Runnable {
 		if(ThreadLocalRandom.current().nextBoolean()) {
 			busDirection = BusDirection.EAST;
 			x = 4;
-			color = Color.GREEN;
+			activeColor = new Color(51, 204, 51);
+			inactiveColor = new Color(0, 153, 51);
 		}else {
 			busDirection = BusDirection.WEST;
 			x = worldMap.getWidth() - width - 4;
-			color = Color.ORANGE;
+			activeColor =  new Color(0, 204, 255);
+			inactiveColor =  new Color(0, 153, 204);
 		}
+		
+		currentColor = activeColor;
 		
 		int worldHeight = worldMap.getHeight(); 
 		int randomPixel  = ThreadLocalRandom.current().nextInt(0, worldHeight + 1);
@@ -169,8 +193,7 @@ public class Bus implements Runnable {
 			} catch (InterruptedException e) {
 				System.err.println("Sleep error");
 			}
-		}
-		
+		}		
 	}
 	
 	private void updatePostition() {
@@ -179,7 +202,11 @@ public class Bus implements Runnable {
 
 	public void sendLog(String message) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<< [BUS" + busID + "] ");
+		sb.append("<< [Bus");
+		sb.append(String.format("%04d", busID));
+		sb.append(" -> ");
+		sb.append(busDirection);
+		sb.append("] ");
 		sb.append(message);
 		logPanel.addLog(sb.toString());
 	}
@@ -229,7 +256,7 @@ public class Bus implements Runnable {
 
 	private void onRoadToBridge() {
 		if(nextState == BusState.ON_ROAD_TO_BRIDGE) {
-			sendLog(currentState.toString() + busDirection.toString());
+			sendLog(currentState.toString());
 			calculateSpeed(ON_ROAD_TO_BRIDGE_TIME);
 			nextState = BusState.GET_ON_BRIDGE;
 		}else {
@@ -273,7 +300,7 @@ public class Bus implements Runnable {
 	
 	private void onRoadToParking() {
 		if(nextState == BusState.ON_ROAD_TO_PARKING) {
-			sendLog(currentState.toString() + busDirection.toString());
+			sendLog(currentState.toString());
 			calculateSpeed(ON_ROAD_TO_PARKING_TIME);
 			nextState = BusState.DISEMBARKATION;
 		}else {
@@ -298,7 +325,7 @@ public class Bus implements Runnable {
 	}
 
 	public void draw(Graphics g) {	
-		g.setColor(color);
+		g.setColor(currentColor);
 		g.fillRect(x, y, width, height);
 		g.setColor(Color.BLACK);
 		g.drawRect(x, y, width, height);
@@ -319,5 +346,12 @@ public class Bus implements Runnable {
 	public boolean isToRemove() {
 		return currentState == BusState.TO_REMOVE;
 	}
+
+	public void setActiveColor() {
+		currentColor = activeColor;
+	}
 	
+	public void setInactiveColor() {
+		currentColor = inactiveColor;
+	}	
 }

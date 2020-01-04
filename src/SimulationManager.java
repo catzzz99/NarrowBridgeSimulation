@@ -5,6 +5,23 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.swing.JTextField;
 
+/*
+ * PROGRAM: "Narrow Bridge Simulation"
+ *
+ * PLIKI: 	NarrowBridgeApp.java
+ * 			Bridge.java
+ * 			Bus.java
+ * 			DrawPanel.java
+ * 			LogPanel.java
+ * 			SimulationManager.java
+ * 			WorldMap.java			
+ * 
+ * AUTOR: 	Micha³ Tkacz 248869
+ * 		 	Pi¹tek TN 11:15
+ * 
+ * DATA:    6 stycznia 2020r
+ * 
+ */
 
 public class SimulationManager implements Runnable {
 	

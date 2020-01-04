@@ -25,23 +25,45 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+/*
+ * PROGRAM: "Narrow Bridge Simulation"
+ *
+ * PLIKI: 	NarrowBridgeApp.java
+ * 			Bridge.java
+ * 			Bus.java
+ * 			DrawPanel.java
+ * 			LogPanel.java
+ * 			SimulationManager.java
+ * 			WorldMap.java			
+ * 
+ * AUTOR: 	Micha³ Tkacz 248869
+ * 		 	Pi¹tek TN 11:15
+ * 
+ * DATA:    6 stycznia 2020r
+ * 
+ */
+
 public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeListener{
 
 	private static final long serialVersionUID = 773440677198457816L;
 	
 	private static final String APP_TITLE = "Narrow Bridge Simulation";
+	
 	private static final String AUTHOR_INFO = "Autor: Micha³ Tkacz 248869\n"
-											+ "Pi¹tek TN 11:15";
+											+ "Pi¹tek TN 11:15 \n"
+											+ "6 stycznia 2020";
+	
 	private static final String APP_INFO = "Program ilustruje sposób symulacji wspó³bie¿nych w¹tków symuluj¹cych pojazdy, \n" 
 										 + "które jad¹c z przeciwnych kierunków musz¹ przejechaæ przez \"w¹ski most\". \n\n" 
 										 + "Most posiada cztery ró¿ne tryby pracy: \n"
-										 + "- \"Tylko jeden bus na moœcie\" - przez most w danej w chwili mo¿e przeje¿dzaæ tylko jeden bus. \n"
-										 + "- \"Ograniczony przejazd tylko w jedn¹ stronê\" - przez most danej w chwili mo¿e przeje¿dzaæ ograniczona liczba \n"
+										 + "- \"Przejazd pojedyñczo\" - przez most w danej w chwili mo¿e przeje¿dzaæ tylko jeden bus. \n"
+										 + "- \"Przejazd ograniczony, jednokierunkowy\" - przez most danej w chwili mo¿e przeje¿dzaæ ograniczona liczba \n"
 										 + "    busów, w jednym, zgodnym kierunku. Limitem busów mo¿na na bie¿¹co sterowaæ. Dopuszczony kierunek przejazu \n"
 										 + "    automatycznie akutalzuje siê co dziesiêæ sekund w sposób losowy.\n"
-										 + "- \"Ograniczony przejazd w obie strony\" - przez most w danej chwili mo¿e przeje¿d¿aæ ograniczona \n" 
+										 + "- \"Przejazd ograniczony, dwukierunkowy\" - przez most w danej chwili mo¿e przeje¿d¿aæ ograniczona \n" 
 										 + "    liczba busów, przy czym kierunek przejazdu ka¿dego z busów jest dowolny. Limitem busów mo¿na na bie¿¹co sterowaæ. \n"
-										 + "- \"Nieograniczony przejazd w obie strony\" - przez most w danej chwili mo¿e przeje¿d¿aæ nieograniczona liczba busów. \n";
+										 + "- \"Przejazd nieograniczony\" - przez most w danej chwili mo¿e przeje¿d¿aæ nieograniczona liczba busów. \n";
+	
 	private static final int BORDER_THICKNESS = 4;
 	private static final int FONT_SIZE = 12;
 	
