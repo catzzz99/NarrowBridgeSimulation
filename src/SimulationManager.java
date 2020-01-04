@@ -36,7 +36,7 @@ public class SimulationManager implements Runnable {
 		return busSpawnMaxDelay;
 	}
 
-	public void setBusSpawnMaxDelay(int busSpawnMaxDelay) {
+	public void setMaxBusSpawnRate(int busSpawnMaxDelay) {
 		this.busSpawnMaxDelay = busSpawnMaxDelay;
 	}
 	
@@ -68,7 +68,7 @@ public class SimulationManager implements Runnable {
 					}
 				}				
 			}
-		}, "BUS SPAWNER").start();
+		}, "BUS_SPAWNER").start();
 		
 		while(true) {
 			synchronized (buses) {

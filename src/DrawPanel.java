@@ -1,7 +1,9 @@
 import java.awt.Color;
 import java.awt.Graphics;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.border.EtchedBorder;
 
 public class DrawPanel extends JPanel implements Runnable{
 	
@@ -11,6 +13,7 @@ public class DrawPanel extends JPanel implements Runnable{
 	
 	public DrawPanel() {
 		setBackground(Color.DARK_GRAY);
+		setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 	}
 	
 	public SimulationManager getSimulationManager() {

@@ -100,7 +100,7 @@ public class Bridge {
 			break;
 		case MANY_BUSES_ONE_WAY:
 			directionSwitcher = new DirectionSwitcher();
-			new Thread(directionSwitcher, "DIRECTON SWITCHER").start();
+			new Thread(directionSwitcher, "DIRECTON_SWITCHER").start();
 			break;
 		default:
 			break;
@@ -144,6 +144,7 @@ public class Bridge {
 			break;
 		case ONE_BUS_ONE_WAY:
 			notify();
+			break;
 		case UNLIMITED:
 			notifyAll();
 			break;

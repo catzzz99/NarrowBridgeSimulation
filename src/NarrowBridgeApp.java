@@ -20,7 +20,8 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -31,7 +32,16 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	private static final String APP_TITLE = "Narrow Bridge Simulation";
 	private static final String AUTHOR_INFO = "Autor: Micha³ Tkacz 248869\n"
 											+ "Pi¹tek TN 11:15";
-	private static final String APP_INFO = "...";
+	private static final String APP_INFO = "Program ilustruje sposób symulacji wspó³bie¿nych w¹tków symuluj¹cych pojazdy, \n" 
+										 + "które jad¹c z przeciwnych kierunków musz¹ przejechaæ przez \"w¹ski most\". \n\n" 
+										 + "Most posiada cztery ró¿ne tryby pracy: \n"
+										 + "- \"Tylko jeden bus na moœcie\" - przez most w danej w chwili mo¿e przeje¿dzaæ tylko jeden bus. \n"
+										 + "- \"Ograniczony przejazd tylko w jedn¹ stronê\" - przez most danej w chwili mo¿e przeje¿dzaæ ograniczona liczba \n"
+										 + "    busów, w jednym, zgodnym kierunku. Limitem busów mo¿na na bie¿¹co sterowaæ. Dopuszczony kierunek przejazu \n"
+										 + "    automatycznie akutalzuje siê co dziesiêæ sekund w sposób losowy.\n"
+										 + "- \"Ograniczony przejazd w obie strony\" - przez most w danej chwili mo¿e przeje¿d¿aæ ograniczona \n" 
+										 + "    liczba busów, przy czym kierunek przejazdu ka¿dego z busów jest dowolny. Limitem busów mo¿na na bie¿¹co sterowaæ. \n"
+										 + "- \"Nieograniczony przejazd w obie strony\" - przez most w danej chwili mo¿e przeje¿d¿aæ nieograniczona liczba busów. \n";
 	private static final int BORDER_THICKNESS = 4;
 	private static final int FONT_SIZE = 12;
 	
@@ -47,17 +57,20 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	private JMenuItem authorInfoMenuItem = new JMenuItem("O autorze");
 	private JMenuItem appInfoMenuItem = new JMenuItem("O programie");	
 	
-	private JLabel busesInQueueLabel = new JLabel("Busy oczekuj¹ce przed mostem:", JLabel.LEFT);
-	private JLabel busesOnBridgeLabel = new JLabel("Busy na moœcie:", JLabel.LEFT);
-	private JLabel trafficIntensityLabel = new JLabel("Natê¿enie ruchu:", JLabel.RIGHT);
-	private JLabel bridgeThroughputLabel = new JLabel("Tryb pracy mostu:", JLabel.RIGHT);
-	private JLabel maxBusesOnBridgeLabel = new JLabel("Ograniczenie liczby busów na moœcie:", JLabel.RIGHT);	
+	private JLabel busesInQueueLabel = new JLabel("Busy oczekuj¹ce w kolejce przed mostem:", JLabel.LEFT);
+	private JLabel busesOnBridgeLabel = new JLabel("Busy obecnie przeje¿d¿aj¹ce przez most:", JLabel.LEFT);
+	private JLabel trafficIntensityLabel = new JLabel("Czêstotliwoœæ pojawiania siê nowych busów:", JLabel.RIGHT);
+	private JLabel bridgeThroughputModeLabel = new JLabel("Tryb pracy mostu:", JLabel.RIGHT);
+	private JLabel maxBusesOnBridgeLabel = new JLabel("Maksymalna liczba busów na moœcie:", JLabel.RIGHT);	
 	
 	private JTextField busesInQueueTextField = new JTextField("Kolejka jest pusta");
 	private JTextField busesOnBridgeTextField = new JTextField("Most jest pusty");
+	
 	private JSlider trafficIntensitySlider = new JSlider(JSlider.HORIZONTAL, 1000, 6000, 4000);
-	private JComboBox<BridgeThroughput> bridgeThroughputComboBox = new JComboBox<>(BridgeThroughput.values());
-	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(((BridgeThroughput)bridgeThroughputComboBox.getSelectedItem()).getBusLimit(), 1, 10, 1));
+	
+	private JComboBox<BridgeThroughput> bridgeThroughputModeComboBox = new JComboBox<>(BridgeThroughput.values());
+	
+	private JSpinner maxBusesOnBridgeSpinner = new JSpinner(new SpinnerNumberModel(((BridgeThroughput)bridgeThroughputModeComboBox.getSelectedItem()).getBusLimit(), 1, 10, 1));
 	
 	private LogPanel logPanel = new LogPanel();
 	private DrawPanel drawPanel = new DrawPanel();
@@ -85,7 +98,8 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	private void addListeners() {
 		authorInfoMenuItem.addActionListener(this);
 		appInfoMenuItem.addActionListener(this);
-		bridgeThroughputComboBox.addActionListener(this);
+		
+		bridgeThroughputModeComboBox.addActionListener(this);
 		
 		trafficIntensitySlider.addChangeListener(this);
 		maxBusesOnBridgeSpinner.addChangeListener(this);
@@ -113,41 +127,38 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	}
 
 	private void createWindowLayout() {		
-		EmptyBorder border = (EmptyBorder) BorderFactory.createEmptyBorder(BORDER_THICKNESS, BORDER_THICKNESS ,BORDER_THICKNESS ,BORDER_THICKNESS);
+		Border emptyBorder = BorderFactory.createEmptyBorder(BORDER_THICKNESS, BORDER_THICKNESS ,BORDER_THICKNESS ,BORDER_THICKNESS);
+		Border etchedBorder = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
 
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(BORDER_THICKNESS, BORDER_THICKNESS));
-		mainPanel.setBorder(border);
-		
+		mainPanel.setBorder(emptyBorder);
 		
 		JPanel northPanel = new JPanel(new GridLayout(1, 2, BORDER_THICKNESS, BORDER_THICKNESS));
 		
+		JPanel northWestPanel = new JPanel();
+		northWestPanel.setLayout(new GridLayout(4, 1, BORDER_THICKNESS, BORDER_THICKNESS));
+		northWestPanel.setBorder(emptyBorder);
+		northWestPanel.add(busesInQueueLabel);
+		northWestPanel.add(busesInQueueTextField);
+		northWestPanel.add(busesOnBridgeLabel);
+		northWestPanel.add(busesOnBridgeTextField);
+		northPanel.add(northWestPanel);
+
 		JPanel northEastPanel = new JPanel();
-		northEastPanel.setLayout(new GridLayout(4, 1, BORDER_THICKNESS, BORDER_THICKNESS));
-		northEastPanel.setBorder(border);
-		northEastPanel.add(busesInQueueLabel);
-		northEastPanel.add(busesInQueueTextField);
-		northEastPanel.add(busesOnBridgeLabel);
-		northEastPanel.add(busesOnBridgeTextField);
+		northEastPanel.setLayout(new GridLayout(3, 2, BORDER_THICKNESS, BORDER_THICKNESS));
+		northEastPanel.setBorder(etchedBorder);
+		northEastPanel.add(trafficIntensityLabel);
+		northEastPanel.add(trafficIntensitySlider);
+		northEastPanel.add(bridgeThroughputModeLabel);
+		northEastPanel.add(bridgeThroughputModeComboBox);
+		northEastPanel.add(maxBusesOnBridgeLabel);
+		northEastPanel.add(maxBusesOnBridgeSpinner);
 		northPanel.add(northEastPanel);
 		
-		JPanel northWestPanel = new JPanel();
-		northWestPanel.setLayout(new GridLayout(3, 2, BORDER_THICKNESS, BORDER_THICKNESS));
-		northWestPanel.setBorder(border);
-		northWestPanel.add(trafficIntensityLabel);
-		northWestPanel.add(trafficIntensitySlider);
-		northWestPanel.add(bridgeThroughputLabel);
-		northWestPanel.add(bridgeThroughputComboBox);
-		northWestPanel.add(maxBusesOnBridgeLabel);
-		northWestPanel.add(maxBusesOnBridgeSpinner);
-		northPanel.add(northWestPanel);
-		
-		
 		JPanel centerPanel = new JPanel(new GridLayout(1, 2, BORDER_THICKNESS, BORDER_THICKNESS));
-		centerPanel.setBorder(border);
 		centerPanel.add(logPanel);
 		centerPanel.add(drawPanel);	
-		
 		
 		mainPanel.add(northPanel, BorderLayout.NORTH);
 		mainPanel.add(centerPanel, BorderLayout.CENTER);
@@ -163,8 +174,8 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	}
 
 	private void startSimulation() {
-		new Thread(simulationManager, "SIMULATION MANAGER").start();
-		new Thread(drawPanel, "DRAW PANEL").start();
+		new Thread(simulationManager, "SIMULATION_MANAGER").start();
+		new Thread(drawPanel, "DRAW_PANEL").start();
 	}
 	
 	@Override
@@ -179,11 +190,10 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 			showAppInfo();
 		}
 		
-		if(eSource == bridgeThroughputComboBox) {
+		if(eSource == bridgeThroughputModeComboBox) {
 			updateMaxBusesOnBridgeSpinner();
-			updateSimulationSettings();
+			updateSimulationBridgeThroughputMode();
 		}
-		
 	}
 	
 	@Override
@@ -191,14 +201,13 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 		Object eSource = event.getSource();
 		
 		if(eSource == trafficIntensitySlider) {
-			setSimulationTrafficFactor();
+			setSimulationTrafficIntensity();
 		}
 		
 		if(eSource == maxBusesOnBridgeSpinner) {
 			updateBridgeThroughput();
-			updateSimulationSettings();
-		}
-		
+			updateSimulationBridgeThroughputMode();
+		}	
 	}
 	
 	private void showAuthorInfo() {
@@ -209,23 +218,23 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 		JOptionPane.showMessageDialog(this, APP_INFO, "Informacje o programie", JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	private void updateSimulationSettings() {
-		BridgeThroughput bridgeThroughput = (BridgeThroughput) bridgeThroughputComboBox.getSelectedItem(); 
+	private void updateSimulationBridgeThroughputMode() {
+		BridgeThroughput bridgeThroughput = (BridgeThroughput) bridgeThroughputModeComboBox.getSelectedItem(); 
 		simulationManager.setBridgeThroughput(bridgeThroughput);
 	}
 
 	private void updateBridgeThroughput() {
 		int busLimit = (int) maxBusesOnBridgeSpinner.getValue();
-		((BridgeThroughput) bridgeThroughputComboBox.getSelectedItem()).setbusLimit(busLimit);		
+		((BridgeThroughput) bridgeThroughputModeComboBox.getSelectedItem()).setbusLimit(busLimit);		
 	}
 
-	private void setSimulationTrafficFactor(){
+	private void setSimulationTrafficIntensity(){
 		int trafficIntensity = trafficIntensitySlider.getValue();
-		simulationManager.setBusSpawnMaxDelay(trafficIntensity);
+		simulationManager.setMaxBusSpawnRate(trafficIntensity);
 	}
 
 	private void updateMaxBusesOnBridgeSpinner() {
-		BridgeThroughput bt = (BridgeThroughput) bridgeThroughputComboBox.getSelectedItem(); 
+		BridgeThroughput bt = (BridgeThroughput) bridgeThroughputModeComboBox.getSelectedItem(); 
 		boolean enabled = (bt == BridgeThroughput.MANY_BUSES_BOTH_WAYS || bt == BridgeThroughput.MANY_BUSES_ONE_WAY);
 		maxBusesOnBridgeSpinner.setEnabled(enabled);
 		maxBusesOnBridgeLabel.setEnabled(enabled);
