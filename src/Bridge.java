@@ -56,17 +56,30 @@ public class Bridge {
 		
 		private final static int SWITCH_TIME = 10000;
 
-		private boolean useSwitcher = true;		
-
+		private boolean useSwitcher;		
+		private BusDirection previousDirection;
+		
+		public DirectionSwitcher() {
+			useSwitcher = true;
+			if(ThreadLocalRandom.current().nextBoolean())
+				previousDirection = BusDirection.EAST;
+			else
+				previousDirection = BusDirection.WEST;
+		}
+		
 		@Override
 		public void run() {
 			while(useSwitcher) {
 				allowedDirections.clear();
-				if(ThreadLocalRandom.current().nextBoolean())
-					allowedDirections.add(BusDirection.EAST);
-				else
-					allowedDirections.add(BusDirection.WEST);
 				
+				if(previousDirection == BusDirection.WEST){
+					allowedDirections.add(BusDirection.EAST);
+					previousDirection = BusDirection.EAST;
+				} else if (previousDirection == BusDirection.EAST){
+					allowedDirections.add(BusDirection.WEST);
+					previousDirection = BusDirection.WEST;
+				}
+							
 				try {
 					Thread.sleep(SWITCH_TIME);
 				} catch (InterruptedException e) {
@@ -78,7 +91,6 @@ public class Bridge {
 		public void closeSwitcher() {
 			this.useSwitcher = false;
 		}
-		
 	}
 	
 	private ArrayList<Bus> busesWaiting;
@@ -90,10 +102,12 @@ public class Bridge {
 	private DirectionSwitcher directionSwitcher;
 
 	public Bridge(BridgeThroughput bridgeThroughput) {
-		setBridgeThroughput(bridgeThroughput);
+		allowedDirections = new HashSet<BusDirection>();
 		
 		busesWaiting = new ArrayList<Bus>();
 		busesCrossing = new ArrayList<Bus>();
+		
+		setBridgeThroughput(bridgeThroughput);
 	}
 
 	public void setBridgeThroughput(BridgeThroughput bridgeThroughput) {
@@ -102,23 +116,24 @@ public class Bridge {
 	}
 	
 	private synchronized void setAllowedDirections() {
-		allowedDirections = new HashSet<BusDirection>();
-		
-		if(directionSwitcher != null) {
-			directionSwitcher.closeSwitcher();
-			directionSwitcher = null;
-		}
+		allowedDirections.clear();
 		
 		switch (bridgeThroughput) {
 		case ONE_BUS_ONE_WAY:
 		case UNLIMITED:
 		case MANY_BUSES_BOTH_WAYS:
+			if(directionSwitcher != null) {
+				directionSwitcher.closeSwitcher();
+				directionSwitcher = null;
+			}
 			allowedDirections.add(BusDirection.EAST);
 			allowedDirections.add(BusDirection.WEST);
 			break;
 		case MANY_BUSES_ONE_WAY:
-			directionSwitcher = new DirectionSwitcher();
-			new Thread(directionSwitcher, "DIRECTON_SWITCHER").start();
+			if(directionSwitcher == null) {
+				directionSwitcher = new DirectionSwitcher();
+				new Thread(directionSwitcher, "DIRECTON_SWITCHER").start();
+			}
 			break;
 		default:
 			break;
@@ -157,8 +172,8 @@ public class Bridge {
 	
 	private synchronized void notifyBuses() {
 		switch(bridgeThroughput) {
-		case MANY_BUSES_BOTH_WAYS:
 		case MANY_BUSES_ONE_WAY:
+		case MANY_BUSES_BOTH_WAYS:		
 			for(int i=bridgeThroughput.getBusLimit()-busesCrossing.size(); i>0; i--)
 				notify();			
 			break;

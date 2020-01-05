@@ -59,7 +59,7 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 										 + "- \"Przejazd pojedyñczo\" - przez most w danej w chwili mo¿e przeje¿dzaæ tylko jeden bus. \n"
 										 + "- \"Przejazd ograniczony, jednokierunkowy\" - przez most danej w chwili mo¿e przeje¿dzaæ ograniczona liczba \n"
 										 + "    busów, w jednym, zgodnym kierunku. Limitem busów mo¿na na bie¿¹co sterowaæ. Dopuszczony kierunek przejazu \n"
-										 + "    automatycznie akutalzuje siê co dziesiêæ sekund w sposób losowy.\n"
+										 + "    automatycznie zmienia siê co dziesiêæ sekund.\n"
 										 + "- \"Przejazd ograniczony, dwukierunkowy\" - przez most w danej chwili mo¿e przeje¿d¿aæ ograniczona \n" 
 										 + "    liczba busów, przy czym kierunek przejazdu ka¿dego z busów jest dowolny. Limitem busów mo¿na na bie¿¹co sterowaæ. \n"
 										 + "- \"Przejazd nieograniczony\" - przez most w danej chwili mo¿e przeje¿d¿aæ nieograniczona liczba busów. \n";
