@@ -23,7 +23,7 @@ import javax.swing.border.EtchedBorder;
  * 
  */
 
-public class DrawPanel extends JPanel implements Runnable{
+public class DrawPanel extends JPanel implements Runnable {
 	
 	private static final long serialVersionUID = 6748004371807231054L;
 	

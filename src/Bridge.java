@@ -70,15 +70,17 @@ public class Bridge {
 		@Override
 		public void run() {
 			while(useSwitcher) {
-				allowedDirections.clear();
 				
+				BusDirection newDirection;
 				if(previousDirection == BusDirection.WEST){
-					allowedDirections.add(BusDirection.EAST);
-					previousDirection = BusDirection.EAST;
-				} else if (previousDirection == BusDirection.EAST){
-					allowedDirections.add(BusDirection.WEST);
-					previousDirection = BusDirection.WEST;
+					newDirection = BusDirection.EAST;
+				} else {
+					newDirection = BusDirection.WEST;
 				}
+				
+				allowedDirections.clear();
+				allowedDirections.add(newDirection);
+				previousDirection = newDirection;
 							
 				try {
 					Thread.sleep(SWITCH_TIME);
@@ -116,7 +118,7 @@ public class Bridge {
 	}
 	
 	private synchronized void setAllowedDirections() {
-		allowedDirections.clear();
+		
 		
 		switch (bridgeThroughput) {
 		case ONE_BUS_ONE_WAY:
@@ -126,6 +128,7 @@ public class Bridge {
 				directionSwitcher.closeSwitcher();
 				directionSwitcher = null;
 			}
+			allowedDirections.clear();
 			allowedDirections.add(BusDirection.EAST);
 			allowedDirections.add(BusDirection.WEST);
 			break;
@@ -173,9 +176,10 @@ public class Bridge {
 	private synchronized void notifyBuses() {
 		switch(bridgeThroughput) {
 		case MANY_BUSES_ONE_WAY:
-		case MANY_BUSES_BOTH_WAYS:		
-			for(int i=bridgeThroughput.getBusLimit()-busesCrossing.size(); i>0; i--)
-				notify();			
+		case MANY_BUSES_BOTH_WAYS:
+			for(int i=bridgeThroughput.getBusLimit()-busesCrossing.size(); i>0; i--) {
+				notify();
+			}		
 			break;
 		case ONE_BUS_ONE_WAY:
 			notify();

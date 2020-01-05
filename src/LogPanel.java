@@ -20,7 +20,7 @@ import javax.swing.ScrollPaneConstants;
  * 
  */
 
-public class LogPanel extends JScrollPane{
+public class LogPanel extends JScrollPane {
 	private static final long serialVersionUID = -1665608884566053419L;
 
 	private static JTextArea logTextArea = new JTextArea();
