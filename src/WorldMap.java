@@ -8,24 +8,6 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
-/*
- * PROGRAM: "Narrow Bridge Simulation"
- *
- * PLIKI: 	NarrowBridgeApp.java
- * 			Bridge.java
- * 			Bus.java
- * 			DrawPanel.java
- * 			LogPanel.java
- * 			SimulationManager.java
- * 			WorldMap.java			
- * 
- * AUTOR: 	Micha³ Tkacz 248869
- * 		 	Pi¹tek TN 11:15
- * 
- * DATA:    6 stycznia 2020r
- * 
- */
-
 enum WorldZoneType{
 	WEST_PARKING("WEST PARKING", Color.DARK_GRAY, 1),
 	WEST_ROAD("WEST ROAD", Color.LIGHT_GRAY, 3),

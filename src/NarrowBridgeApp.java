@@ -25,44 +25,23 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-/*
- * PROGRAM: "Narrow Bridge Simulation"
- *
- * PLIKI: 	NarrowBridgeApp.java
- * 			Bridge.java
- * 			Bus.java
- * 			DrawPanel.java
- * 			LogPanel.java
- * 			SimulationManager.java
- * 			WorldMap.java			
- * 
- * AUTOR: 	Micha³ Tkacz 248869
- * 		 	Pi¹tek TN 11:15
- * 
- * DATA:    6 stycznia 2020r
- * 
- */
-
 public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeListener{
 
 	private static final long serialVersionUID = 773440677198457816L;
 	
 	private static final String APP_TITLE = "Narrow Bridge Simulation";
 	
-	private static final String AUTHOR_INFO = "Autor: Micha³ Tkacz 248869\n"
-											+ "Pi¹tek TN 11:15 \n"
-											+ "6 stycznia 2020";
+	private static final String AUTHOR_INFO = "Author: Michal Tkacz \n"
+											+ "Date: January 2020";
 	
-	private static final String APP_INFO = "Program ilustruje sposób symulacji wspó³bie¿nych w¹tków symuluj¹cych pojazdy, \n" 
-										 + "które jad¹c z przeciwnych kierunków musz¹ przejechaæ przez \"w¹ski most\". \n\n" 
-										 + "Most posiada cztery ró¿ne tryby pracy: \n"
-										 + "- \"Przejazd pojedyñczo\" - przez most w danej w chwili mo¿e przeje¿dzaæ tylko jeden bus. \n"
-										 + "- \"Przejazd ograniczony, jednokierunkowy\" - przez most danej w chwili mo¿e przeje¿dzaæ ograniczona liczba \n"
-										 + "    busów, w jednym, zgodnym kierunku. Limitem busów mo¿na na bie¿¹co sterowaæ. Dopuszczony kierunek przejazu \n"
-										 + "    automatycznie zmienia siê co dziesiêæ sekund.\n"
-										 + "- \"Przejazd ograniczony, dwukierunkowy\" - przez most w danej chwili mo¿e przeje¿d¿aæ ograniczona \n" 
-										 + "    liczba busów, przy czym kierunek przejazdu ka¿dego z busów jest dowolny. Limitem busów mo¿na na bie¿¹co sterowaæ. \n"
-										 + "- \"Przejazd nieograniczony\" - przez most w danej chwili mo¿e przeje¿d¿aæ nieograniczona liczba busów. \n";
+	private static final String APP_INFO = "Program ilustrates bridge crossing problem\n"
+										 + "Bridge may work in 4 different ways: \n"
+										 + "- \"One bus, one way\" - only one bus crossing bridge at the time.\n"
+										 + "- \"Many buses, one way\" - many buses crossing bridge at the time, but only in one direction. \n"
+										 + "    Bus limit might be changed in any time. \n"
+										 + "    Directions changes automatically every 10 seconds.\n"
+										 + "- \"Many buses, both ways\" - same as for  \"Many buses, one way\", but buses might drive in both directions.  \n"
+										 + "- \"Unlimited\" - unilitmited crossing in both directions\n";
 	
 	private static final int BORDER_THICKNESS = 4;
 	private static final int FONT_SIZE = 12;
@@ -75,18 +54,18 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	
 	private JMenuBar menuBar = new JMenuBar();
 	
-	private JMenu helpMenu = new JMenu("Pomoc");
-	private JMenuItem authorInfoMenuItem = new JMenuItem("O autorze");
-	private JMenuItem appInfoMenuItem = new JMenuItem("O programie");	
+	private JMenu helpMenu = new JMenu("Help");
+	private JMenuItem authorInfoMenuItem = new JMenuItem("Author");
+	private JMenuItem appInfoMenuItem = new JMenuItem("About");	
 	
-	private JLabel busesInQueueLabel = new JLabel("Busy oczekuj¹ce w kolejce przed mostem:", JLabel.LEFT);
-	private JLabel busesOnBridgeLabel = new JLabel("Busy obecnie przeje¿d¿aj¹ce przez most:", JLabel.LEFT);
-	private JLabel trafficIntensityLabel = new JLabel("Czêstotliwoœæ pojawiania siê nowych busów:", JLabel.RIGHT);
-	private JLabel bridgeThroughputModeLabel = new JLabel("Tryb pracy mostu:", JLabel.RIGHT);
-	private JLabel maxBusesOnBridgeLabel = new JLabel("Maksymalna liczba busów na moœcie:", JLabel.RIGHT);	
+	private JLabel busesInQueueLabel = new JLabel("Buses in queue:", JLabel.LEFT);
+	private JLabel busesOnBridgeLabel = new JLabel("Buses crossing the bridge:", JLabel.LEFT);
+	private JLabel trafficIntensityLabel = new JLabel("Frequency of bus spawning:", JLabel.RIGHT);
+	private JLabel bridgeThroughputModeLabel = new JLabel("Bridge mode:", JLabel.RIGHT);
+	private JLabel maxBusesOnBridgeLabel = new JLabel("Limit of number of buses crossing the bridge:", JLabel.RIGHT);	
 	
-	private JTextField busesInQueueTextField = new JTextField("Kolejka jest pusta");
-	private JTextField busesOnBridgeTextField = new JTextField("Most jest pusty");
+	private JTextField busesInQueueTextField = new JTextField("Queue is empty");
+	private JTextField busesOnBridgeTextField = new JTextField("Bride is empty");
 	
 	private JSlider trafficIntensitySlider = new JSlider(JSlider.HORIZONTAL, 1000, 6000, 4000);
 	
@@ -233,11 +212,11 @@ public class NarrowBridgeApp extends JFrame implements ActionListener, ChangeLis
 	}
 	
 	private void showAuthorInfo() {
-		JOptionPane.showMessageDialog(this, AUTHOR_INFO, "Informacje o autorze", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, AUTHOR_INFO, "About author", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void showAppInfo() {
-		JOptionPane.showMessageDialog(this, APP_INFO, "Informacje o programie", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, APP_INFO, "About program", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void updateSimulationBridgeThroughputMode() {

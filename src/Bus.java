@@ -4,24 +4,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.util.concurrent.ThreadLocalRandom;
 
-/*
- * PROGRAM: "Narrow Bridge Simulation"
- *
- * PLIKI: 	NarrowBridgeApp.java
- * 			Bridge.java
- * 			Bus.java
- * 			DrawPanel.java
- * 			LogPanel.java
- * 			SimulationManager.java
- * 			WorldMap.java			
- * 
- * AUTOR: 	Micha³ Tkacz 248869
- * 		 	Pi¹tek TN 11:15
- * 
- * DATA:    6 stycznia 2020r
- * 
- */
-
 enum BusDirection {
 	EAST("E", 1),
 	WEST("W", -1);
@@ -45,15 +27,15 @@ enum BusDirection {
 }
 
 enum BusState {
-	INITIALIZATION("[Bus pojawi³ siê na parkingu pocz¹tkowym] "),
-	EMBARKATION("Wpuszcza pasa¿erów na pok³ad na parkingu pocz¹tkowym "),
-	ON_ROAD_TO_BRIDGE("Jedzie w kierunku mostu "),
-	GET_ON_BRIDGE("Czeka w kolejce do wjazdu na most "),
-	CROSS_THE_BRIDGE("Przeje¿d¿a przez most "),
-	GET_OFF_BRIDGE("Opuszcza most "),
-	ON_ROAD_TO_PARKING("Jedzie w kierunku parkingu koñcowego "),
-	DISEMBARKATION("Wypuszcza pasa¿erów na parkingu koñcowym "),
-	TO_REMOVE("[Bus opuœci³ parking koñcowy] ");
+	INITIALIZATION("[Bus has spawned on start parking] "),
+	EMBARKATION("Is embarking "),
+	ON_ROAD_TO_BRIDGE("Is driving towards bridge "),
+	GET_ON_BRIDGE("Is waiting in queue "),
+	CROSS_THE_BRIDGE("Is crossing the bridge "),
+	GET_OFF_BRIDGE("Is leaving the bridge "),
+	ON_ROAD_TO_PARKING("Is driving towards end parking"),
+	DISEMBARKATION("Is diembarking "),
+	TO_REMOVE("[Bus has despawned] ");
 	
 	private String stateMessage;
 	

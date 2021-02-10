@@ -2,29 +2,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 
-/*
- * PROGRAM: "Narrow Bridge Simulation"
- *
- * PLIKI: 	NarrowBridgeApp.java
- * 			Bridge.java
- * 			Bus.java
- * 			DrawPanel.java
- * 			LogPanel.java
- * 			SimulationManager.java
- * 			WorldMap.java			
- * 
- * AUTOR: 	Micha³ Tkacz 248869
- * 		 	Pi¹tek TN 11:15
- * 
- * DATA:    6 stycznia 2020r
- * 
- */
-
 enum BridgeThroughput {
-	ONE_BUS_ONE_WAY("Przejazd pojedyñczo", 1),
-	MANY_BUSES_ONE_WAY("Przejazd ograniczony, jednokierunkowy", 3),
-	MANY_BUSES_BOTH_WAYS("Przejazd ograniczony, dwukierunkowy", 3),
-	UNLIMITED("Przejazd nieograniczony", Integer.MAX_VALUE);
+	ONE_BUS_ONE_WAY("One bus, one way", 1),
+	MANY_BUSES_ONE_WAY("Many buses, one way", 3),
+	MANY_BUSES_BOTH_WAYS("Many buses, both ways", 3),
+	UNLIMITED("Unlimited", Integer.MAX_VALUE);
 	
 	
 	private String text;

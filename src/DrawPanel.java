@@ -5,24 +5,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
-/*
- * PROGRAM: "Narrow Bridge Simulation"
- *
- * PLIKI: 	NarrowBridgeApp.java
- * 			Bridge.java
- * 			Bus.java
- * 			DrawPanel.java
- * 			LogPanel.java
- * 			SimulationManager.java
- * 			WorldMap.java			
- * 
- * AUTOR: 	Micha³ Tkacz 248869
- * 		 	Pi¹tek TN 11:15
- * 
- * DATA:    6 stycznia 2020r
- * 
- */
-
 public class DrawPanel extends JPanel implements Runnable {
 	
 	private static final long serialVersionUID = 6748004371807231054L;
